@@ -14,12 +14,12 @@ public struct AssertionBuilder {
         return arg0
     }
 
-    public static func buildEither<T: Assertion>(first: T) -> T {
-        return first
+    public static func buildEither<A: Assertion, B: Assertion>(first: A) -> EitherAssertion<A, B> {
+        return EitherAssertion(first: first)
     }
 
-    public static func buildEither<T: Assertion>(second: T) -> T {
-        return second
+    public static func buildEither<A: Assertion, B: Assertion>(second: B) -> EitherAssertion<A, B> {
+        return EitherAssertion(second: second)
     }
 
     public static func buildIf<T: Assertion>(first: T) -> T {
