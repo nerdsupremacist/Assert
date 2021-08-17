@@ -19,4 +19,18 @@ final class AssertTests: XCTestCase {
             Assert(second.message, equals: "2 equals 3")
         }
     }
+
+    func testArrayBuilder() {
+        let results = test {
+            for number in 0..<3 {
+                Assert(number % 2, equals: 0, message: "Expected \(number) to be even")
+            }
+        }
+
+        xcTest {
+            Assert(results.failures.count, equals: 1, message: "Expected exactly 1 failure")
+            Assert(results.failures[0].path.count, equals: 1, message: "Expected path to populated")
+            Assert(results.failures[0].path[0], equals: "Index 1", message: "Expected path to include index of failed iteration")
+        }
+    }
 }

@@ -22,6 +22,10 @@ public struct TestBuilder {
         return EitherTest(second: second)
     }
 
+    public static func buildArray<T : Test>(_ array: [T]) -> ArrayTest<T> {
+        return ArrayTest(array)
+    }
+
     public static func buildIf<T: Test>(first: T) -> T {
         return first
     }
