@@ -5,7 +5,7 @@ public func test<Content: Assertion>(@AssertionBuilder build: () -> Content) -> 
     let content = build()
     let context = AssertionContext()
     context.assert(content)
-    return TestResults(failures: context.failures)
+    return TestResults(successful: context.successful, failures: context.failures)
 }
 
 #if canImport(XCTest)

@@ -26,6 +26,7 @@ class AssertionContext {
     }
 
     private var state: _State = _State()
+    private(set) var successful: [Success] = []
     private(set) var failures: [Failure] = []
 
     func beginGroup(path: [String]) {
@@ -43,6 +44,15 @@ class AssertionContext {
 
         let failure = Failure(path: state.path, message: message, file: file, function: function, line: line)
         failures.append(failure)
+    }
+
+    func pass(message: String?,
+              file: StaticString,
+              function: StaticString,
+              line: UInt) {
+
+        let success = Success(path: state.path, message: message, file: file, function: function, line: line)
+        successful.append(success)
     }
 
     func assert<Content : Assertion>(_ assertion: Content) {

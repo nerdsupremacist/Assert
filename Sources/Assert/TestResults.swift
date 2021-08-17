@@ -2,6 +2,7 @@
 import Foundation
 
 public struct TestResults {
+    public let successful: [Success]
     public let failures: [Failure]
 }
 

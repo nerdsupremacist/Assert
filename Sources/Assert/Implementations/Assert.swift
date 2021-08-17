@@ -40,6 +40,8 @@ extension Assert: Assertion {
 
     public var body: some Assertion {
         if !condition() {
+            Pass(message: message, file: file, function: function, line: line)
+        } else {
             Fail(message: message, file: file, function: function, line: line)
         }
     }
