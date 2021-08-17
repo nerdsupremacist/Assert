@@ -1,7 +1,7 @@
 
 import Foundation
 
-extension Never: Assertion {
+extension Never: Test {
     public typealias Body = Never
 
     public var body: Never {

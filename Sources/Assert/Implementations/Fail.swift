@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct Fail: Assertion {
+public struct Fail: Test {
     public typealias Body = Never
 
     private let message: String?
@@ -25,9 +25,9 @@ public struct Fail: Assertion {
     }
 }
 
-extension Fail: InternalAssertion {
+extension Fail: InternalTest {
 
-    func assert(_ context: AssertionContext) {
+    func test(_ context: TestContext) {
         context.fail(message: message, file: file, function: function, line: line)
     }
 

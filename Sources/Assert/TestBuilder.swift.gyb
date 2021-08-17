@@ -1,0 +1,57 @@
+// This file was automatically generated and should not be edited.
+%{
+    # Edit this if you want to include more components in a single tuple component
+    maximumNumberOfComponents = 100
+
+    print("Generating TestBuilder...")
+}%
+
+@resultBuilder
+public struct TestBuilder {
+    public static func buildBlock() -> EmptyTest {
+        return EmptyTest()
+    }
+
+    public static func buildIf<T: Test>(_ component: T?) -> T? {
+        return component
+    }
+
+    public static func buildBlock<T: Test>(_ arg0: T) -> T {
+        return arg0
+    }
+
+    public static func buildEither<A: Test, B: Test>(first: A) -> EitherTest<A, B> {
+        return EitherTest(first: first)
+    }
+
+    public static func buildEither<A: Test, B: Test>(second: B) -> EitherTest<A, B> {
+        return EitherTest(second: second)
+    }
+
+    public static func buildIf<T: Test>(first: T) -> T {
+        return first
+    }
+
+    public static func buildIf<T: Test>(second: T) -> T {
+        return second
+    }
+
+    % for num_components in range(2, maximumNumberOfComponents):
+%{
+        indices = range(0, num_components)
+        generic_names_in = ['T{}'.format(idx) for idx in indices]
+        generics = ', '.join(['{}: Test'.format(name) for name in generic_names_in])
+        generic_names_out = ['T{}'.format(idx) for idx in indices]
+        param_names = ['arg{}'.format(idx) for idx in indices]
+        params = ', '.join(['_ {}: {}'.format(param, type) for param, type in zip(param_names, generic_names_in)])
+        tuple_ctor_args = param_names
+}%
+    public static func buildBlock<${generics}>(${params}) -> TupleTest<(${', '.join(generic_names_out)})> {
+        return TupleTest<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
+    }
+
+    % end
+}
+%{
+    print("Finished generating TestBuilder!")
+}%

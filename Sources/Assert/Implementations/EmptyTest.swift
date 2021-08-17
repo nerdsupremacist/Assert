@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct EmptyAssertion: Assertion {
+public struct EmptyTest: Test {
     public typealias Body = Never
 
     public var body: Never {
@@ -9,9 +9,9 @@ public struct EmptyAssertion: Assertion {
     }
 }
 
-extension EmptyAssertion: InternalAssertion {
+extension EmptyTest: InternalTest {
 
-    func assert(_ context: AssertionContext) {
+    func test(_ context: TestContext) {
         // no-op
     }
 

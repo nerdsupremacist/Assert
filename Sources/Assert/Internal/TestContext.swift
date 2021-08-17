@@ -2,7 +2,7 @@
 import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-class AssertionContext {
+class TestContext {
     private class _State {
         let path: [String]
         private let previous: _State?
@@ -55,35 +55,35 @@ class AssertionContext {
         successful.append(success)
     }
 
-    func assert<Content : Assertion>(_ assertion: Content) {
-        if let internalAssertion = assertion as? InternalAssertion {
-            internalAssertion.assert(self)
+    func use<Content : Test>(test: Content) {
+        if let internalTest = test as? InternalTest {
+            internalTest.test(self)
             return
         }
 
-        let body = assertion.body
-        assert(body)
+        let body = test.body
+        use(test: body)
     }
 }
 
-extension AssertionContext {
+extension TestContext {
 
-    func unsafeAssert(_ value: Any) {
-        let visitor = ContextBasedAssertionVisitor(context: self)
+    func unsafeUse(test value: Any) {
+        let visitor = ContextBasedTestVisitor(context: self)
         Swift.assert(visitor(value) != nil)
     }
 
 }
 
-private protocol AssertionVisitor: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = AssertionVisitor
-    associatedtype Input = Assertion
+private protocol TestVisitor: AssociatedTypeRequirementsVisitor {
+    associatedtype Visitor = TestVisitor
+    associatedtype Input = Test
     associatedtype Output
 
-    func callAsFunction<T : Assertion>(_ value: T) -> Output
+    func callAsFunction<T : Test>(_ value: T) -> Output
 }
 
-extension AssertionVisitor {
+extension TestVisitor {
 
     @inline(never)
     @_optimize(none)
@@ -93,10 +93,10 @@ extension AssertionVisitor {
 
 }
 
-private struct ContextBasedAssertionVisitor: AssertionVisitor {
-    let context: AssertionContext
+private struct ContextBasedTestVisitor: TestVisitor {
+    let context: TestContext
 
-    func callAsFunction<T : Assertion>(_ value: T) {
-        context.assert(value)
+    func callAsFunction<T : Test>(_ value: T) {
+        context.use(test: value)
     }
 }

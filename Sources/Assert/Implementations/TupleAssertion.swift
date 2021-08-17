@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct TupleAssertion<Tuple>: Assertion {
+public struct TupleTest<Tuple>: Test {
     public typealias Body = Never
 
     private let storage: Tuple
@@ -15,12 +15,12 @@ public struct TupleAssertion<Tuple>: Assertion {
     }
 }
 
-extension TupleAssertion: InternalAssertion {
+extension TupleTest: InternalTest {
 
-    func assert(_ context: AssertionContext) {
+    func test(_ context: TestContext) {
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
-            context.unsafeAssert(value)
+            context.unsafeUse(test: value)
         }
     }
 

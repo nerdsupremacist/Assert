@@ -36,9 +36,9 @@ public struct Assert {
     }
 }
 
-extension Assert: Assertion {
+extension Assert: Test {
 
-    public var body: some Assertion {
+    public var body: some Test {
         if !condition() {
             Pass(message: message, file: file, function: function, line: line)
         } else {

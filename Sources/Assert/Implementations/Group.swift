@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct Group<Content: Assertion>: Assertion {
+public struct Group<Content: Test>: Test {
     public typealias Body = Never
 
     private let path: [String]
@@ -17,11 +17,11 @@ public struct Group<Content: Assertion>: Assertion {
     }
 }
 
-extension Group: InternalAssertion {
+extension Group: InternalTest {
 
-    func assert(_ context: AssertionContext) {
+    func test(_ context: TestContext) {
         context.beginGroup(path: path)
-        context.assert(content)
+        context.use(test: content)
         context.endGroup()
     }
 

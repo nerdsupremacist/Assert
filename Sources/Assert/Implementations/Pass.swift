@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct Pass: Assertion {
+public struct Pass: Test {
     public typealias Body = Never
 
     private let message: String?
@@ -25,8 +25,8 @@ public struct Pass: Assertion {
     }
 }
 
-extension Pass: InternalAssertion {
-    func assert(_ context: AssertionContext) {
+extension Pass: InternalTest {
+    func test(_ context: TestContext) {
         context.pass(message: message, file: file, function: function, line: line)
     }
 }

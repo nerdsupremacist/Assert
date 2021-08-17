@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct EitherAssertion<A: Assertion, B: Assertion>: Assertion {
+public struct EitherTest<A: Test, B: Test>: Test {
     public typealias Body = Never
 
     private enum Storage {
@@ -24,14 +24,14 @@ public struct EitherAssertion<A: Assertion, B: Assertion>: Assertion {
     }
 }
 
-extension EitherAssertion: InternalAssertion {
+extension EitherTest: InternalTest {
 
-    func assert(_ context: AssertionContext) {
+    func test(_ context: TestContext) {
         switch storage {
-        case .first(let assertion):
-            context.assert(assertion)
-        case .second(let assertion):
-            context.assert(assertion)
+        case .first(let test):
+            context.use(test: test)
+        case .second(let test):
+            context.use(test: test)
         }
     }
 

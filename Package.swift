@@ -17,7 +17,7 @@ let package = Package(
     targets: [
         .target(name: "Assert",
                 dependencies: ["AssociatedTypeRequirementsKit"],
-                exclude: ["AssertionBuilder.swift.gyb"]),
+                exclude: ["TestBuilder.swift.gyb"]),
         .testTarget(name: "AssertTests",
                     dependencies: ["Assert"]),
     ]
