@@ -6,6 +6,17 @@ public struct TestResults {
     public let failures: [Failure]
 }
 
+extension TestResults {
+
+    public static let empty = TestResults(successful: [], failures: [])
+    
+    public static func + (lhs: TestResults, rhs: TestResults) -> TestResults {
+        return TestResults(successful: lhs.successful + rhs.successful,
+                           failures: lhs.failures + rhs.failures)
+    }
+
+}
+
 #if canImport(XCTest)
 import XCTest
 
