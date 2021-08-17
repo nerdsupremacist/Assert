@@ -24,14 +24,16 @@ extension TestResults {
 
     public func xcTest() {
         for success in successful {
-            if let message = success.message {
+            let message = (success.path + [success.message]).compactMap { $0 }.joined(separator: " | ")
+            if !message.isEmpty {
                 XCTAssert(true, message, file: success.file, line: success.line)
             } else {
                 XCTAssert(true, file: success.file, line: success.line)
             }
         }
         for failure in failures {
-            if let message = failure.message {
+            let message = (failure.path + [failure.message]).compactMap { $0 }.joined(separator: " | ")
+            if !message.isEmpty {
                 XCTFail(message, file: failure.file, line: failure.line)
             } else {
                 XCTFail(file: failure.file, line: failure.line)
