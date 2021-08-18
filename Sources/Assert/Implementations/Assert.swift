@@ -370,3 +370,67 @@ extension Assert where PassValue == (), FollowUp == EmptyTest {
                   })
     }
 }
+
+// MARK: Casting
+
+extension Assert {
+    public init(_ value: @autoclosure @escaping () -> Any,
+                toBeOfType: PassValue.Type,
+                message: String? = nil,
+                file: StaticString = #file,
+                function: StaticString = #function,
+                line: UInt = #line,
+                @TestBuilder followUp: @escaping (PassValue) -> FollowUp) {
+
+        self.init(message: message,
+                  file: file,
+                  function: function,
+                  line: line,
+                  {
+                    guard let value = value() as? PassValue else {
+                        return .fail
+                    }
+                    return .pass(value)
+                  },
+                  followUp: followUp)
+    }
+}
+
+extension Assert where PassValue == () {
+    public init(_ value: @autoclosure @escaping () -> Any,
+                toBeOfType: PassValue.Type,
+                message: String? = nil,
+                file: StaticString = #file,
+                function: StaticString = #function,
+                line: UInt = #line,
+                @TestBuilder followUp: @escaping () -> FollowUp) {
+
+        self.init(message: message,
+                  file: file,
+                  function: function,
+                  line: line,
+                  {
+                    return (value() as? PassValue) != nil
+                  },
+                  followUp: followUp)
+    }
+}
+
+extension Assert where PassValue == (), FollowUp == EmptyTest {
+    public init(_ value: @autoclosure @escaping () -> Any,
+                toBeOfType: PassValue.Type,
+                message: String? = nil,
+                file: StaticString = #file,
+                function: StaticString = #function,
+                line: UInt = #line,
+                @TestBuilder followUp: @escaping () -> FollowUp) {
+
+        self.init(message: message,
+                  file: file,
+                  function: function,
+                  line: line,
+                  {
+                    return (value() as? PassValue) != nil
+                  })
+    }
+}
