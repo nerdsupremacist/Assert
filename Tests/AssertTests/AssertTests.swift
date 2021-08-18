@@ -11,12 +11,13 @@ final class AssertTests: XCTestCase {
         }
 
         xcTest {
-            Assert(results.failures.count, equals: 2, message: "Expceted exactly 2 failures")
-            let first = results.failures[0]
-            let second = results.failures[1]
+            Assert(results.failures.count, equals: 2, message: "Expceted exactly 2 failures") {
+                let first = results.failures[0]
+                let second = results.failures[1]
 
-            Assert(first.message, equals: "1 equals 2")
-            Assert(second.message, equals: "2 equals 3")
+                Assert(first.message, equals: "1 equals 2")
+                Assert(second.message, equals: "2 equals 3")
+            }
         }
     }
 
@@ -40,7 +41,7 @@ struct ArrayBuilderTest: Test {
                 Assert(number % 2, equals: 0, message: "Expected \(number) to be even")
             }
         }
-        
+
         Assert(isNotNil: results.failures.first, message: "Expected at least one failure") { failure in
             Assert(failure.message, equals: "Expected 1 to be even")
         }
