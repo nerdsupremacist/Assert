@@ -28,9 +28,31 @@ final class AssertTests: XCTestCase {
         }
 
         xcTest {
-            Assert(results.failures.count, equals: 1, message: "Expected exactly 1 failure")
-            Assert(results.failures[0].path.count, equals: 1, message: "Expected path to populated")
-            Assert(results.failures[0].path[0], equals: "Index 1", message: "Expected path to include index of failed iteration")
+            ArrayBuilderTest(results: results)
         }
     }
+}
+
+struct ArrayBuilderTest: Test {
+    let results: TestResults
+
+    var body: some Test {
+        Assert(isNotNil: results.failures.first, message: "Expected at least one failure") { failure in
+            Assert(failure.message, equals: "Expected 1 to be even")
+        }
+        Assert(throws: try throwsSomething()) { error in
+            Assert(error.localizedDescription, equals: "The operation couldn’t be completed. (AssertTests.SomeError error 0.)")
+        }
+        Assert(results.failures.count, equals: 1, message: "Expected exactly 1 failure")
+        Assert(results.failures[0].path.count, equals: 1, message: "Expected path to populated")
+        Assert(results.failures[0].path[0], equals: "Index 1", message: "Expected path to include index of failed iteration")
+    }
+}
+
+enum SomeError: Error {
+    case something
+}
+
+func throwsSomething() throws {
+    throw SomeError.something
 }
