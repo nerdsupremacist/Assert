@@ -21,14 +21,8 @@ final class AssertTests: XCTestCase {
     }
 
     func testArrayBuilder() {
-        let results = test {
-            for number in 0..<3 {
-                Assert(number % 2, equals: 0, message: "Expected \(number) to be even")
-            }
-        }
-
         xcTest {
-            ArrayBuilderTest(results: results)
+            ArrayBuilderTest()
         }
     }
 
@@ -40,9 +34,13 @@ final class AssertTests: XCTestCase {
 }
 
 struct ArrayBuilderTest: Test {
-    let results: TestResults
-
     var body: some Test {
+        let results = test {
+            for number in 0..<3 {
+                Assert(number % 2, equals: 0, message: "Expected \(number) to be even")
+            }
+        }
+        
         Assert(isNotNil: results.failures.first, message: "Expected at least one failure") { failure in
             Assert(failure.message, equals: "Expected 1 to be even")
         }
