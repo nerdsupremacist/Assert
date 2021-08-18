@@ -31,6 +31,12 @@ final class AssertTests: XCTestCase {
             ArrayBuilderTest(results: results)
         }
     }
+
+    func testErrorThrowing() {
+        xcTest {
+            ErrorThrowingTest()
+        }
+    }
 }
 
 struct ArrayBuilderTest: Test {
@@ -40,16 +46,23 @@ struct ArrayBuilderTest: Test {
         Assert(isNotNil: results.failures.first, message: "Expected at least one failure") { failure in
             Assert(failure.message, equals: "Expected 1 to be even")
         }
-        Assert(throws: try throwsSomething()) { error in
-            Assert(error.localizedDescription, equals: "The operation couldn’t be completed. (AssertTests.SomeError error 0.)")
-        }
         Assert(results.failures.count, equals: 1, message: "Expected exactly 1 failure")
         Assert(results.failures[0].path.count, equals: 1, message: "Expected path to populated")
         Assert(results.failures[0].path[0], equals: "Index 1", message: "Expected path to include index of failed iteration")
     }
 }
 
-enum SomeError: Error {
+struct ErrorThrowingTest: Test {
+    var body: some Test {
+        Assert(throws: try throwsSomething()) { error in
+            Assert(error, toBeOfType: SomeError.self) { error in
+                Assert(error, equals: .something)
+            }
+        }
+    }
+}
+
+enum SomeError: Error, Equatable {
     case something
 }
 
