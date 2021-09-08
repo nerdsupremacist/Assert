@@ -11,7 +11,7 @@ public struct Group<Content: Test>: Test {
         fatalError()
     }
 
-    public init(path: String, _ rest: String..., content: () -> Content) {
+    public init(path: String, _ rest: String..., @TestBuilder content: () -> Content) {
         self.path = [path] + rest
         self.content = content()
     }
