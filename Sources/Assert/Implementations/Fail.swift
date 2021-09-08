@@ -4,7 +4,7 @@ import Foundation
 public struct Fail: Test {
     public typealias Body = Never
 
-    private let message: String?
+    private let message: () -> String?
     private let file: StaticString
     private let function: StaticString
     private let line: UInt
@@ -13,7 +13,7 @@ public struct Fail: Test {
         fatalError()
     }
 
-    public init(message: String? = nil,
+    public init(message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line) {
@@ -28,7 +28,7 @@ public struct Fail: Test {
 extension Fail: InternalTest {
 
     func test(_ context: TestContext) {
-        context.fail(message: message, file: file, function: function, line: line)
+        context.fail(message: message(), file: file, function: function, line: line)
     }
 
 }

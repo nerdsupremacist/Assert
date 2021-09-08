@@ -5,14 +5,14 @@ import Foundation
 
 public struct Assert<PassValue, FollowUp : Test> {
     private let test: () -> AssertionResult<PassValue>
-    private let message: String?
+    private let message: () -> String?
     private let followUp: (PassValue) -> FollowUp
 
     private let file: StaticString
     private let function: StaticString
     private let line: UInt
 
-    public init(message: String? = nil,
+    public init(message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
@@ -47,10 +47,10 @@ extension Assert: Test {
     public var body: some Test {
         switch test() {
         case .pass(let value):
-            Pass(message: message, file: file, function: function, line: line)
+            Pass(message: message(), file: file, function: function, line: line)
             followUp(value)
         case .fail:
-            Fail(message: message, file: file, function: function, line: line)
+            Fail(message: message(), file: file, function: function, line: line)
         }
     }
 }
@@ -58,45 +58,45 @@ extension Assert: Test {
 // MARK: Conditions
 
 extension Assert where PassValue == () {
-    public init(message: String? = nil,
+    public init(message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 _ condition: @escaping () -> Bool,
                 @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message, file: file, function: function, line: line, { condition() ? .pass : .fail }, followUp: followUp)
+        self.init(message: message(), file: file, function: function, line: line, { condition() ? .pass : .fail }, followUp: followUp)
     }
 
     public init(_ condition: @autoclosure @escaping () -> Bool,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message, file: file, function: function, line: line, condition, followUp: followUp)
+        self.init(message: message(), file: file, function: function, line: line, condition, followUp: followUp)
     }
 }
 
 extension Assert where FollowUp == EmptyTest, PassValue == () {
 
-    public init(message: String? = nil,
+    public init(message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 _ condition: @escaping () -> Bool) {
 
-        self.init(message: message, file: file, function: function, line: line, condition, followUp: { EmptyTest() })
+        self.init(message: message(), file: file, function: function, line: line, condition, followUp: { EmptyTest() })
     }
 
     public init(_ condition: @autoclosure @escaping () -> Bool,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line) {
 
-        self.init(message: message, file: file, function: function, line: line, condition)
+        self.init(message: message(), file: file, function: function, line: line, condition)
     }
 
 }
@@ -106,13 +106,13 @@ extension Assert where FollowUp == EmptyTest, PassValue == () {
 extension Assert where PassValue == () {
     public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
                                equals rhs: @escaping @autoclosure () -> T,
-                               message: String? = nil,
+                               message: @escaping @autoclosure () -> String?,
                                file: StaticString = #file,
                                function: StaticString = #function,
                                line: UInt = #line,
                                @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -120,33 +120,69 @@ extension Assert where PassValue == () {
                   followUp: followUp)
     }
 
-
     public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
                                doesNotEqual rhs: @escaping @autoclosure () -> T,
-                               message: String? = nil,
+                               message: @escaping @autoclosure () -> String?,
                                file: StaticString = #file,
                                function: StaticString = #function,
                                line: UInt = #line,
                                @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
                   { lhs() != rhs() },
                   followUp: followUp)
     }
+
+
+    public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
+                               equals rhs: @escaping @autoclosure () -> T,
+                               file: StaticString = #file,
+                               function: StaticString = #function,
+                               line: UInt = #line,
+                               @TestBuilder followUp: @escaping () -> FollowUp) {
+
+        let lhs = BoxedAutoClosure(lhs)
+        let rhs = BoxedAutoClosure(rhs)
+        let message: () -> String = {
+            let left = lhs.load()
+            let right = rhs.load()
+            return "Expected \(left) to be equal to \(right)"
+        }
+
+        self.init(lhs.load(), equals: rhs.load(), message: message(), file: file, function: function, line: line, followUp: followUp)
+    }
+
+    public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
+                               doesNotEqual rhs: @escaping @autoclosure () -> T,
+                               file: StaticString = #file,
+                               function: StaticString = #function,
+                               line: UInt = #line,
+                               @TestBuilder followUp: @escaping () -> FollowUp) {
+
+        let lhs = BoxedAutoClosure(lhs)
+        let rhs = BoxedAutoClosure(rhs)
+        let message: () -> String = {
+            let left = lhs.load()
+            let right = rhs.load()
+            return "Expected \(left) to not be equal to \(right)"
+        }
+
+        self.init(lhs.load(), equals: rhs.load(), message: message(), file: file, function: function, line: line, followUp: followUp)
+    }
 }
 
 extension Assert where FollowUp == EmptyTest, PassValue == () {
     public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
                                equals rhs: @escaping @autoclosure () -> T,
-                               message: String? = nil,
+                               message: @escaping @autoclosure () -> String?,
                                file: StaticString = #file,
                                function: StaticString = #function,
                                line: UInt = #line) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -156,17 +192,53 @@ extension Assert where FollowUp == EmptyTest, PassValue == () {
 
     public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
                                doesNotEqual rhs: @escaping @autoclosure () -> T,
-                               message: String? = nil,
+                               message: @escaping @autoclosure () -> String?,
                                file: StaticString = #file,
                                function: StaticString = #function,
                                line: UInt = #line,
                                @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
                   { lhs() != rhs() })
+    }
+
+    public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
+                               equals rhs: @escaping @autoclosure () -> T,
+                               file: StaticString = #file,
+                               function: StaticString = #function,
+                               line: UInt = #line) {
+
+        let lhs = BoxedAutoClosure(lhs)
+        let rhs = BoxedAutoClosure(rhs)
+        let message: () -> String = {
+            let left = lhs.load()
+            let right = rhs.load()
+            return "Expected \(left) to be equal to \(right)"
+        }
+
+        self.init(lhs.load(), equals: rhs.load(), message: message(), file: file, function: function, line: line)
+    }
+
+
+    public init<T : Equatable>(_ lhs: @escaping @autoclosure () -> T,
+                               doesNotEqual rhs: @escaping @autoclosure () -> T,
+                               file: StaticString = #file,
+                               function: StaticString = #function,
+                               line: UInt = #line,
+                               @TestBuilder followUp: @escaping () -> FollowUp) {
+
+        let lhs = BoxedAutoClosure(lhs)
+        let rhs = BoxedAutoClosure(rhs)
+        let message: () -> String = {
+            let left = lhs.load()
+            let right = rhs.load()
+            return "Expected \(left) to not be equal to \(right)"
+        }
+
+        self.init(lhs.load(), equals: rhs.load(), message: message(), file: file, function: function, line: line)
     }
 }
 
@@ -174,13 +246,13 @@ extension Assert where FollowUp == EmptyTest, PassValue == () {
 
 extension Assert where PassValue == () {
     public init<T>(isNil value: @escaping @autoclosure () -> T?,
-                   message: String? = nil,
+                   message: @escaping @autoclosure () -> String? = nil,
                    file: StaticString = #file,
                    function: StaticString = #function,
                    line: UInt = #line,
                    @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -189,13 +261,13 @@ extension Assert where PassValue == () {
     }
 
     public init<T>(isNotNil value: @escaping @autoclosure () -> T?,
-                   message: String? = nil,
+                   message: @escaping @autoclosure () -> String? = nil,
                    file: StaticString = #file,
                    function: StaticString = #function,
                    line: UInt = #line,
                    @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -206,12 +278,12 @@ extension Assert where PassValue == () {
 
 extension Assert where FollowUp == EmptyTest, PassValue == () {
     public init<T>(isNil value: @escaping @autoclosure () -> T?,
-                   message: String? = nil,
+                   message: @escaping @autoclosure () -> String? = nil,
                    file: StaticString = #file,
                    function: StaticString = #function,
                    line: UInt = #line) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -220,12 +292,12 @@ extension Assert where FollowUp == EmptyTest, PassValue == () {
     }
 
     public init<T>(isNotNil value: @escaping @autoclosure () -> T?,
-                   message: String? = nil,
+                   message: @escaping @autoclosure () -> String? = nil,
                    file: StaticString = #file,
                    function: StaticString = #function,
                    line: UInt = #line) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -236,13 +308,13 @@ extension Assert where FollowUp == EmptyTest, PassValue == () {
 
 extension Assert {
     public init(isNotNil value: @escaping @autoclosure () -> PassValue?,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping (PassValue) -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -261,13 +333,13 @@ extension Assert {
 
 extension Assert where PassValue == Error {
     public init(throws block: @escaping @autoclosure () throws -> Void,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping (PassValue) -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -285,13 +357,13 @@ extension Assert where PassValue == Error {
 
 extension Assert where PassValue == () {
     public init(throws block: @escaping @autoclosure () throws -> Void,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -307,13 +379,13 @@ extension Assert where PassValue == () {
     }
 
     public init(doesNotThrow block: @escaping @autoclosure () throws -> Void,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -331,12 +403,12 @@ extension Assert where PassValue == () {
 
 extension Assert where PassValue == (), FollowUp == EmptyTest {
     public init(throws block: @escaping @autoclosure () throws -> Void,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -351,12 +423,12 @@ extension Assert where PassValue == (), FollowUp == EmptyTest {
     }
 
     public init(doesNotThrow block: @escaping @autoclosure () throws -> Void,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -376,13 +448,13 @@ extension Assert where PassValue == (), FollowUp == EmptyTest {
 extension Assert {
     public init(_ value: @autoclosure @escaping () -> Any,
                 toBeOfType: PassValue.Type,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping (PassValue) -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -399,13 +471,13 @@ extension Assert {
 extension Assert where PassValue == () {
     public init(_ value: @autoclosure @escaping () -> Any,
                 toBeOfType: PassValue.Type,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,
@@ -419,13 +491,13 @@ extension Assert where PassValue == () {
 extension Assert where PassValue == (), FollowUp == EmptyTest {
     public init(_ value: @autoclosure @escaping () -> Any,
                 toBeOfType: PassValue.Type,
-                message: String? = nil,
+                message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line,
                 @TestBuilder followUp: @escaping () -> FollowUp) {
 
-        self.init(message: message,
+        self.init(message: message(),
                   file: file,
                   function: function,
                   line: line,

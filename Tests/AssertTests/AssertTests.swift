@@ -5,7 +5,7 @@ final class AssertTests: XCTestCase {
     func testExample() {
         let results = test {
             Assert(1, equals: 1, message: "1 equals 1")
-            Assert(1, equals: 2, message: "1 equals 2")
+            Assert(1, equals: 2)
             Assert(2, equals: 2, message: "2 equals 1")
             Assert(2, equals: 3, message: "2 equals 3")
         }
@@ -15,7 +15,7 @@ final class AssertTests: XCTestCase {
                 let first = results.failures[0]
                 let second = results.failures[1]
 
-                Assert(first.message, equals: "1 equals 2")
+                Assert(first.message, equals: "Expected 1 to be equal to 2")
                 Assert(second.message, equals: "2 equals 3")
             }
         }

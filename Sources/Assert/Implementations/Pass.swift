@@ -4,7 +4,7 @@ import Foundation
 public struct Pass: Test {
     public typealias Body = Never
 
-    private let message: String?
+    private let message: () -> String?
     private let file: StaticString
     private let function: StaticString
     private let line: UInt
@@ -13,7 +13,7 @@ public struct Pass: Test {
         fatalError()
     }
 
-    public init(message: String? = nil,
+    public init(message: @escaping @autoclosure () -> String? = nil,
                 file: StaticString = #file,
                 function: StaticString = #function,
                 line: UInt = #line) {
@@ -27,6 +27,6 @@ public struct Pass: Test {
 
 extension Pass: InternalTest {
     func test(_ context: TestContext) {
-        context.pass(message: message, file: file, function: function, line: line)
+        context.pass(message: message(), file: file, function: function, line: line)
     }
 }
